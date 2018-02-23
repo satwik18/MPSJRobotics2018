@@ -15,9 +15,9 @@
 #define MAX_SPEED 360 //  0 to 720 degrees per second (DPS)
 
 #define WHEEL_WIDTH 4.0 // the wheel is 4 inches tall
-#define WHEEL_C (2.0 * PI * WHEEL_WIDTH / 2.0) // the wheel circumference in inches
+#define WHEEL_C (PI * WHEEL_WIDTH) // the wheel circumference in inches
 #define WHEEL_BASE_WIDTH 11.0 // the distance between the wheels in inches
-#define WHEEL_BASE_C (2.0 * PI * WHEEL_BASE_WIDTH / 2.0) // the circumference of the weel base ininches
+#define WHEEL_BASE_C (PI * WHEEL_BASE_WIDTH) // the circumference of the weel base ininches
 
 
 PRIZM p; // Prizm library instance
