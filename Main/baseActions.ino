@@ -10,17 +10,17 @@
 void rotate(double deg, int spd) {
   p.resetEncoders(); // reset encoders to clear the previous rotations
   
-  // Read the current angle of the weel (may be always 0 since line above)
+  // Read the current angle of the wheel (may be always 0 since line above)
   long rightDeg = p.readEncoderDegrees(1); 
   long leftDeg = p.readEncoderDegrees(2);
 
   // Using the circumference of the base, calculate how far the robot needs to spin to turn deg
   double rotateDistance = (deg / 360.0) * WHEEL_BASE_C;
 
-  // Convert the distance needed to turn to degrees the weels must turn
+  // Convert the distance needed to turn to degrees the wheels must turn
   double degreesToTurn = rotateDistance / WHEEL_C * 360;
 
-  // Add the degrees to turn to the weel
+  // Add the degrees to turn to the wheel
   rightDeg += degreesToTurn;
   leftDeg -= degreesToTurn;
 
