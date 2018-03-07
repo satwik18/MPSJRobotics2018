@@ -29,11 +29,9 @@ void rotate(double deg, int spd) {
   //p.setMotorDegrees(spd, rightDeg, spd, leftDeg);
   p.setMotorTargets(spd, rightDeg * 4, spd, leftDeg * 4);
 
-  // wait until robot has fully turned
   while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
     delay(50);
   }
-  delay(50);
 }
 
 
@@ -49,11 +47,9 @@ void forwardBy(double inches, int spd) {
   p.resetEncoders(); // reset encoders to clear the previous rotations
   p.setMotorDegrees(spd, deg, spd, deg);
 
-  // wait until robot has fully moved
   while(abs(p.readEncoderDegrees(1) - deg) > 1.0 && abs(p.readEncoderDegrees(2) - deg) > 1.0) {
     delay(50);
   }
-  delay(50);
 }
 
 
@@ -72,17 +68,18 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
-// Blocks until a line is detected within threshold of accuracy
+
 void waitForLine(int mill, double threshold) {
   while(p.readLineSensor(17) < threshold) {
     delay(mill);
   }
 }
 
-// Blocks until the distance sensor is below dist in inches
 void waitForProximityBelow(int sensorNo, double dist) {
-  const double threshold = 1.0;
-  while(abs(p.readSonicSensorIN(sensorNo) - dist) < threshold) {
+  const double threshold = 0.5;
+  double cur_sns = p.readSonicSensorIN(sensorNo);
+  while(abs(cur_sns - dist) < threshold) {
+    cur_sns = p.readSonicSensorIN(sensorNo);
     delay(50);
   }
 }
@@ -96,4 +93,3 @@ void setClaw(int deg) {
 void setArm(int deg) {
     p.setServoPosition(1,deg);
 }
-
