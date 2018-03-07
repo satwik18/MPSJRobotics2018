@@ -1,4 +1,3 @@
-
 /* Michael Power / St. Joseph Autonomous 2018
  * 
  * This file is the main program for the 2018 competition.
@@ -11,7 +10,7 @@
 
 #include <PRIZM.h>
 
-#define FRONT_SS 6 // Front Super Sonic sensor
+#define FRONT_SS 5 // Front Super Sonic sensor
 #define CLAW_SERVO_NO 2 // Claw servo number
 #define ARM_SERVO_NO 1 // Arm servo number
 
@@ -39,29 +38,39 @@ void setup() {
 
 void loop() {
   // this will goto the first line, turn, grab a pipe and come back
+  for (double i = 1.0; i < 4.0; i++){
+    runPart1(i);
+  }
+  p.PrizmEnd();
+}
+
+void runPart1(int line_num){
   setClaw(CLAW_OPEN);
   setArm(ARM_DOWN);
   
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   
-  waitForLine(50, 1.0);
+  waitForLine(50, line_num);
 
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED);
   rotate(-90, 100);
 
-
-  p.setMotorSpeeds(100, 100);
-  waitForProximityBelow(FRONT_SS, 6.0); // TODO: the second paramater still needs to be adjusted for distance to the pipe
-  p.setMotorSpeeds(0, 0);
+  delay(100);
+  p.setMotorPowers(50,50);
+  delay(100);
+  p.setMotorPowers(0,0);
+  delay(100);
 
 
   setClaw(CLAW_CLOSED);
   delay(900);
-  forwardBy(-3, MAX_SPEED);
-  rotate(-90, 100);
-  forwardBy(24, MAX_SPEED);
+  forwardBy(-3.0, MAX_SPEED);
   setArm(ARM_UP);
-
-  delay(50000);
+  rotate(-90, 100);
+  forwardBy(53, MAX_SPEED);
+  setClaw(CLAW_OPEN);
+  delay(500);
+  forwardBy(-3.0, MAX_SPEED);
+  rotate(180, 100);
 }
 
