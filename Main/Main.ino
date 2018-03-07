@@ -50,7 +50,9 @@ void runPart1(int line_num){
   
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   
-  waitForLine(50, line_num);
+  for (int i = 0; i < line_num; i++) {
+    waitForLine(50, 1.0);
+  }
 
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED);
   rotate(-90, 100);
