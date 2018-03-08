@@ -33,12 +33,14 @@ void setup() {
   p.PrizmBegin();
   p.setMotorInvert(1,1);
   Serial.begin(9600); // For sending debug messages to a connected computer
+  p.setServoPositions(90, 90, 0, 0, 0, 0);
+  delay(500);
 }
 
 
 void loop() {
   // this will goto the first line, turn, grab a pipe and come back
-  for (double i = 1.0; i < 4.0; i++){
+  for (int i = 1; i < 4; i++){
     runPart1(i);
   }
   p.PrizmEnd();
@@ -50,16 +52,13 @@ void runPart1(int line_num){
   
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   
-  for (int i = 0; i < line_num; i++) {
-    waitForLine(50, 1.0);
-  }
+  waitForLineNum(line_num);
 
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED);
   rotate(-90, 100);
 
   delay(100);
-  p.setMotorPowers(50,50);
-  delay(100);
+  forwardBy(2.5, MAX_SPEED);
   p.setMotorPowers(0,0);
   delay(100);
 
@@ -75,4 +74,3 @@ void runPart1(int line_num){
   forwardBy(-3.0, MAX_SPEED);
   rotate(180, 100);
 }
-
