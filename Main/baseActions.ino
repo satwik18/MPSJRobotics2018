@@ -8,7 +8,7 @@
 
 // Rotates the robot by deg clockwise at a spd
 void rotate(double deg, int spd) {
-  const double threshold = 1.0;
+  const double threshold = 1.2;
   p.resetEncoders(); // reset encoders to clear the previous rotations
   
   // Read the current angle of the wheel (may be always 0 since line above)
@@ -32,6 +32,7 @@ void rotate(double deg, int spd) {
   while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
     delay(50);
   }
+  delay(500);  
 }
 
 
@@ -47,9 +48,10 @@ void forwardBy(double inches, int spd) {
   p.resetEncoders(); // reset encoders to clear the previous rotations
   p.setMotorDegrees(spd, deg, spd, deg);
 
-  while(abs(p.readEncoderDegrees(1) - deg) > 1.0 && abs(p.readEncoderDegrees(2) - deg) > 1.0) {
+  while(abs(p.readEncoderDegrees(1) - deg) > 2.0 && abs(p.readEncoderDegrees(2) - deg) > 2.0) {
     delay(50);
   }
+  delay(1000);  
 }
 
 
@@ -68,9 +70,28 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
+void waitForLineNum(int lnNumb) {
+  int count = 0;
+  while(count < (lnNumb - 1)){
+    p.setGreenLED(1);
+    waitForLine(50, 1.0);
+    p.setRedLED(1);
+    waitForSpace(25, 1.0);
+    p.setGreenLED(0);
+    p.setRedLED(0);
+    count += 1;
+  }
+  waitForLine(50, 1.0);
+}
 
 void waitForLine(int mill, double threshold) {
   while(p.readLineSensor(17) < threshold) {
+    delay(mill);
+  }
+}
+
+void waitForSpace(int mill, double threshold) {
+  while(p.readLineSensor(17) >= threshold) {
     delay(mill);
   }
 }
@@ -92,4 +113,13 @@ void setClaw(int deg) {
 // Set the arm to deg (note constants)
 void setArm(int deg) {
     p.setServoPosition(1,deg);
+}
+
+void goForSensor(int sensorNo, double dist){
+  while (p.readSonicSensorIN(sensorNo) > dist && abs(p.readSonicSensorIN(sensorNo) - dist) > 1.0){
+    p.resetEncoders(); // reset encoders to clear the previous rotations
+    p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    delay(1);
+  }
+  p.setMotorPowers(0,0);
 }
