@@ -78,19 +78,21 @@ void waitForLineNum(int lnNumb) {
     p.setRedLED(1);
     waitForSpace(25, 1.0);
     p.setGreenLED(0);
-    p.setRedLED(0);
+    p.setRedLED(0); 
     count += 1;
   }
   waitForLine(50, 1.0);
 }
 
 void waitForLine(int mill, double threshold) {
+//    while(p.readLineSensor(17) < threshold) {
   while(p.readLineSensor(17) < threshold) {
     delay(mill);
   }
 }
 
 void waitForSpace(int mill, double threshold) {
+//    while(p.readLineSensor(17) >= threshold) {
   while(p.readLineSensor(17) >= threshold) {
     delay(mill);
   }
@@ -98,9 +100,7 @@ void waitForSpace(int mill, double threshold) {
 
 void waitForProximityBelow(int sensorNo, double dist) {
   const double threshold = 0.5;
-  double cur_sns = p.readSonicSensorIN(sensorNo);
-  while(abs(cur_sns - dist) < threshold) {
-    cur_sns = p.readSonicSensorIN(sensorNo);
+  while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
     delay(50);
   }
 }
