@@ -8,7 +8,7 @@
 
 // Rotates the robot by deg clockwise at a spd
 void rotate(double deg, int spd) {
-  const double threshold = 1.2;
+  const double threshold = 2.5;
   p.resetEncoders(); // reset encoders to clear the previous rotations
   
   // Read the current angle of the wheel (may be always 0 since line above)
@@ -32,7 +32,7 @@ void rotate(double deg, int spd) {
   while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
     delay(50);
   }
-  delay(500);  
+  delay(1000);
 }
 
 
@@ -48,7 +48,7 @@ void forwardBy(double inches, int spd) {
   p.resetEncoders(); // reset encoders to clear the previous rotations
   p.setMotorDegrees(spd, deg, spd, deg);
 
-  while(abs(p.readEncoderDegrees(1) - deg) > 2.0 && abs(p.readEncoderDegrees(2) - deg) > 2.0) {
+  while(abs(p.readEncoderDegrees(1) - deg) > 2.5 && abs(p.readEncoderDegrees(2) - deg) > 2.5) {
     delay(50);
   }
   delay(1000);  
