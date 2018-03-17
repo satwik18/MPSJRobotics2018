@@ -19,7 +19,7 @@
 #define ARM_DOWN 20
 #define ARM_UP 105
 #define CLAW_OPEN 170
-#define CLAW_CLOSED 75
+#define CLAW_CLOSED 73
 
 #define WHEEL_WIDTH 4.0 // the wheel is 4 inches tall
 #define WHEEL_C (PI * WHEEL_WIDTH) // the wheel circumference in inches
@@ -33,6 +33,8 @@ void setup() {
   p.PrizmBegin();
   p.setMotorInvert(1,1);
   Serial.begin(9600); // For sending debug messages to a connected computer
+  //p.setServoPositions(90, 90, 0, 0, 0, 0);
+//  delay(1500);
 }
 
 void loop() {
@@ -56,6 +58,7 @@ void runPart1(int line_num){
   rotate(-90, 100);
 
   delay(100);
+  //forwardBy(2.5, MAX_SPEED);
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   waitForProximityBelow(FRONT_SS, 14);
   p.setMotorSpeeds(0,0);
@@ -67,8 +70,9 @@ void runPart1(int line_num){
   forwardBy(-2.2, MAX_SPEED);
   setArm(ARM_UP);
   rotate(-90, 100);
+  //forwardBy(53, MAX_SPEED);
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForProximityBelow(FRONT_SS, 15);
+  waitForProximityBelow(FRONT_SS, 17);
   p.setMotorSpeeds(0, 0);
 
   setClaw(CLAW_OPEN);
@@ -76,4 +80,3 @@ void runPart1(int line_num){
   forwardBy(-7.0, MAX_SPEED);
   rotate(180, 100);
 }
-
