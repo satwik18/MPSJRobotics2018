@@ -84,8 +84,36 @@ void waitForLineNum(int lnNumb) {
   waitForLine(50, 1.0);
 }
 
+void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
+  int count = 0;
+  while(count < (lnNumb - 1)){
+    p.setGreenLED(1);
+    waitForLineWCorrection(1.0, sideSensor);
+    p.setRedLED(1);
+    waitForSpace(25, 1.0);
+    p.setGreenLED(0);
+    p.setRedLED(0); 
+    count += 1;
+  }
+  waitForLineWCorrection(1.0, sideSensor);
+}
+
+void waitForLineWCorrection(double threshold, int sideSensor) {
+  int rotationDeg = 10;
+  if (sideSensor == LEFT_SS) rotationDeg *= -1;
+  while(p.readLineSensor(17) < threshold) {
+    if (p.readSonicSensorCM(sideSensor) < 9) {
+      p.setMotorSpeeds(0, 0);
+      rotate(rotationDeg, 100);
+      forwardBy(-7, 100);
+      rotate(-rotationDeg, 100);
+      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    }
+    delay(100);
+  }
+}
+
 void waitForLine(int mill, double threshold) {
-//    while(p.readLineSensor(17) < threshold) {
   while(p.readLineSensor(17) < threshold) {
     delay(mill);
   }
@@ -101,7 +129,7 @@ void waitForSpace(int mill, double threshold) {
 void waitForProximityBelow(int sensorNo, double dist) {
   const double threshold = 0.5;
   while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
-    delay(50);
+    delay(100);
   }
 }
 
