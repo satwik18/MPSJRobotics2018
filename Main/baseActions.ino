@@ -6,6 +6,8 @@
  * to make the robot do interesting things.
  */
 
+#define SENSOR_DELAY 50 // The ammount of mills to wait in between sensor checks
+
 // Rotates the robot by deg clockwise at a spd
 void rotate(double deg, int spd) {
   const double threshold = 2.5;
@@ -30,7 +32,7 @@ void rotate(double deg, int spd) {
   p.setMotorTargets(spd, rightDeg * 4, spd, leftDeg * 4);
 
   while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
-    delay(50);
+    delay(SENSOR_DELAY);
   }
   delay(1000);
 }
@@ -49,7 +51,7 @@ void forwardBy(double inches, int spd) {
   p.setMotorDegrees(spd, deg, spd, deg);
 
   while(abs(p.readEncoderDegrees(1) - deg) > 2.5 && abs(p.readEncoderDegrees(2) - deg) > 2.5) {
-    delay(50);
+    delay(SENSOR_DELAY);
   }
   delay(1000);  
 }
@@ -81,7 +83,7 @@ void waitForLineWCorrection(double threshold, int sideSensor) {
       rotate(-rotationDeg, 100);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
-    delay(100);
+    delay(SENSOR_DELAY);
   }
 }
 
@@ -92,7 +94,7 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
     p.setGreenLED(1);
     waitForLineWCorrection(1.0, sideSensor);
     p.setRedLED(1);
-    waitForSpace(25, 1.0);
+    waitForSpace();
     p.setGreenLED(0);
     p.setRedLED(0); 
     count += 1;
@@ -101,9 +103,10 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
 }
 
 // Waits for the next line
-void waitForLine(int mill, double threshold) {
+void waitForLine() {
+  const double threshold = 1.0;
   while(p.readLineSensor(17) < threshold) {
-    delay(mill);
+    delay(SENSOR_DELAY);
   }
 }
 
@@ -112,21 +115,21 @@ void waitForLineNum(int lnNumb) {
   int count = 0;
   while(count < (lnNumb - 1)){
     p.setGreenLED(1);
-    waitForLine(50, 1.0);
+    waitForLine();
     p.setRedLED(1);
-    waitForSpace(25, 1.0);
+    waitForSpace();
     p.setGreenLED(0);
     p.setRedLED(0); 
     count += 1;
   }
-  waitForLine(50, 1.0);
+  waitForLine();
 }
 
 // Waits for the next space
-void waitForSpace(int mill, double threshold) {
-//    while(p.readLineSensor(17) >= threshold) {
+void waitForSpace() {
+  const double threshold = 1.0;
   while(p.readLineSensor(17) >= threshold) {
-    delay(mill);
+    delay(SENSOR_DELAY);
   }
 }
 
@@ -134,7 +137,7 @@ void waitForSpace(int mill, double threshold) {
 void waitForProximityBelow(int sensorNo, double dist) {
   const double threshold = 0.5;
   while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
-    delay(100);
+    delay(SENSOR_DELAY);
   }
 }
 
