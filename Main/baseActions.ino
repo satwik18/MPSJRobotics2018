@@ -18,6 +18,7 @@ void rotate(double deg, int spd) {
   long leftDeg = p.readEncoderDegrees(2);
 
   // Using the circumference of the base, calculate how far the robot needs to spin to turn deg
+
   double rotateDistance = (deg / 360.0) * WHEEL_BASE_C;
 
   // Convert the distance needed to turn to degrees the wheels must turn
@@ -29,7 +30,7 @@ void rotate(double deg, int spd) {
 
   // Tell the robot to make the adjustments at a spd
   //p.setMotorDegrees(spd, rightDeg, spd, leftDeg);
-  p.setMotorTargets(spd, rightDeg * 4, spd, leftDeg * 4);
+  p.setMotorTargets(spd, rightDeg * 4.0, spd, leftDeg * 4.0);
 
   while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
     delay(SENSOR_DELAY);
@@ -90,13 +91,24 @@ void waitForLineWCorrection(double threshold, int sideSensor) {
 // Waits for the lnNumb line and corrects if it gets too close to the wall with the sideSensor
 void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
   int count = 0;
+  int rotationDeg = 10;
+  if (sideSensor == LEFT_SS) rotationDeg *= -1;
   while(count < (lnNumb - 1)){
     p.setGreenLED(1);
-    waitForLineWCorrection(1.0, sideSensor);
+    while(p.readLineSensor(17) < 1.0) {
+      if (p.readSonicSensorCM(sideSensor) < 9 && count == 0) {
+        p.setMotorSpeeds(0, 0);
+        rotate(rotationDeg, 100);
+        forwardBy(-7, 100);
+        rotate(-rotationDeg, 100);
+        p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+      }
+      delay(SENSOR_DELAY);
+    }
     p.setRedLED(1);
     waitForSpace();
     p.setGreenLED(0);
-    p.setRedLED(0); 
+    p.setRedLED(0);
     count += 1;
   }
   waitForLineWCorrection(1.0, sideSensor);
@@ -129,6 +141,22 @@ void waitForLineNum(int lnNumb) {
 void waitForSpace() {
   const double threshold = 1.0;
   while(p.readLineSensor(17) >= threshold) {
+    delay(SENSOR_DELAY);
+  }
+}
+
+// Waits for the front proximity to be below dist with distance correction
+void waitForProximityBelowWCorrection(int sensorNo, double dist, int sideSensor) {
+  const int rotationDeg = 10;
+  const double threshold = 0.5;
+  while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
+    if (p.readSonicSensorCM(sideSensor) < 9) {
+      p.setMotorSpeeds(0, 0);
+      rotate(rotationDeg, 100);
+      forwardBy(-7, 100);
+      rotate(-rotationDeg, 100);
+      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    }
     delay(SENSOR_DELAY);
   }
 }
