@@ -18,10 +18,10 @@
 
 #define MAX_SPEED 150 //  0 to 720 degrees per second (DPS)
 
-#define ARM_DOWN 20
-#define ARM_UP 105
-#define CLAW_OPEN 170
-#define CLAW_CLOSED 73
+#define ARM_DOWN 20 // The arm's up position
+#define ARM_UP 105 // The arm's down position
+#define CLAW_OPEN 170 // The claw's open position
+#define CLAW_CLOSED 73 // The claw's closed position
 
 #define WHEEL_WIDTH 4.0 // the wheel is 4 inches tall
 #define WHEEL_C (PI * WHEEL_WIDTH) // the wheel circumference in inches
@@ -39,62 +39,86 @@ void setup() {
   p.PrizmBegin();
   p.setMotorInvert(1,1);
   Serial.begin(9600); // For sending debug messages to a connected computer
-  //p.setServoPositions(90, 90, 0, 0, 0, 0);
-//  delay(1500);
+  delay(100);
 }
 
 void loop() {
+  // open claw
+  setClaw(CLAW_OPEN);
+  setArm(ARM_DOWN);
+  delay(500);
 
-
+  // lineup for first run
   forwardBy(4.25, MAX_SPEED);
   rotate(90, 100);
   
-  pickupSidePipe(1, SIDE_RIGHT); // * 1.001);
+  // pickup pipes 1-3 on the right side
+  pickupSidePipe(1, SIDE_RIGHT);
   returnPipe();
   rotate(179, 100);
-  pickupSidePipe(2, SIDE_RIGHT);// * 0.9999);
+  pickupSidePipe(2, SIDE_RIGHT);
   returnPipe();
   rotate(179, 100);
   pickupSidePipe(3, SIDE_RIGHT);
   returnPipe();
+
+  // Pickup 4th pipe
   rotate(179, 100);
   pickupSidePipe(4, SIDE_RIGHT);
 
-  forwardBy(58, MAX_SPEED);
-  
-  rotate(90, 100);
-  forwardBy(2.5, MAX_SPEED);
+
+  forwardBy(58, MAX_SPEED); // Move back to skids enough to catch the tape after turn
+  rotate(90, 100); // turn towards the next skid
+
+  // move to next line
+  forwardBy(2.5, MAX_SPEED); // Make sure its over the black tape
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   waitForLineNum(1); // the led will likely get detected on the first line so 2 lines should be detected
-  // adjust for claw offset
-  forwardBy(ROTATION_CORRECTION_DIST_RIGHT + 1.7, MAX_SPEED);
+  forwardBy(ROTATION_CORRECTION_DIST_RIGHT + 1.7, MAX_SPEED); // adjust for claw offset
+  
+  // rotate to the middle skid and then drop
   rotate(-90, 100);
   returnPipe();
 
-
-  
+  // rotate to the third skid
   rotate(90, 100);
   delay(100);
-  forwardBy(2.5, MAX_SPEED);
+  forwardBy(2.5, MAX_SPEED); // make sure does not read tape
   
+  // Move to the third skid line
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   waitForLineNum(1); // the led will likely get detected on the first line so 2 lines should be detected
-  // adjust for claw offset
-  forwardBy(ROTATION_CORRECTION_DIST_RIGHT + 3.0, MAX_SPEED);
-  rotate(89, 100);
+  forwardBy(ROTATION_CORRECTION_DIST_RIGHT + 3.0, MAX_SPEED); // Adjust for offset
 
+  // prepare for first run on the left side
+  rotate(89, 100);
   forwardBy(19, MAX_SPEED); // Move so we dont detect the line
 
-  // Do the left side
-  pickupSidePipe(1, SIDE_LEFT); // * 1.001);
+  // Do the left side pipes 1-3
+  pickupSidePipe(1, SIDE_LEFT);
   returnPipe();
-  rotate(180, 100);
-  pickupSidePipe(2, SIDE_LEFT);// * 0.9999);
+  rotate(181, 100);
+  pickupSidePipe(2, SIDE_LEFT);
   returnPipe();
-  rotate(180, 100);
+  rotate(181, 100);
   pickupSidePipe(3, SIDE_LEFT);
   returnPipe();
+
+  // pickup 4th pipe
+  rotate(181, 100);
   pickupSidePipe(4, SIDE_LEFT);
+
+  forwardBy(58, MAX_SPEED); // Move back to skids enough to catch the tape after turn
+  rotate(-90, 100); // turn towards the prev skid
+
+  // rotate to the middle skid and then drop
+  rotate(90, 100);
+  returnPipe();
+
+  // rotate for last pipe
+  rotate(180, 100);
+
+  // TODO finish here
   
   p.PrizmEnd();
 }
@@ -119,7 +143,7 @@ void pickupSidePipe(int ithPipe, double side) {
 
   // move to the ith line
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForLineNumWCorrection(ithPipe, side);
+  waitForLineNumWCorrection(ithPipe, sideSensor);
   // adjust for claw offset
   forwardBy(correctionDist, MAX_SPEED);
   
@@ -130,10 +154,9 @@ void pickupSidePipe(int ithPipe, double side) {
   delay(100);
   // Move toward pipe and into grabbing distance
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForProximityBelow(FRONT_SS, 14); // original 14
+  waitForProximityBelow(FRONT_SS, 14);
   p.setMotorSpeeds(0,0);
   delay(100);
-
 
 
   setClaw(CLAW_CLOSED);
@@ -154,41 +177,5 @@ void returnPipe() {
   setClaw(CLAW_OPEN);
   delay(1000);
   forwardBy(-11.0, MAX_SPEED);
-}
-
-void runPart1(int line_num){
-  setClaw(CLAW_OPEN);
-  setArm(ARM_DOWN);
-  delay(1500);
-  
-  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  
-  waitForLineNum(line_num);
-
-  forwardBy(ROTATION_CORRECTION_DIST_RIGHT, MAX_SPEED);
-  rotate(-90, 100);
-
-  delay(100);
-  //forwardBy(2.5, MAX_SPEED);
-  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForProximityBelow(FRONT_SS, 14);
-  p.setMotorSpeeds(0,0);
-  delay(100);
-
-
-  setClaw(CLAW_CLOSED);
-  delay(900);
-  forwardBy(-2.2, MAX_SPEED);
-  setArm(ARM_UP);
-  rotate(-90, 100);
-  //forwardBy(53, MAX_SPEED);
-  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForProximityBelow(FRONT_SS, 17);
-  p.setMotorSpeeds(0, 0);
-
-  setClaw(CLAW_OPEN);
-  delay(500);
-  forwardBy(-7.0, MAX_SPEED);
-  rotate(180, 100);
 }
 

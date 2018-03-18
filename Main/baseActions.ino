@@ -54,7 +54,6 @@ void forwardBy(double inches, int spd) {
   delay(1000);  
 }
 
-
 // Accelerates over mills from 0 dps to toSpeed
 void accelerateFor(int mills, int toSpeed) {
   double stepCount = 10; // How many steps in the acceleration
@@ -70,34 +69,7 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
-void waitForLineNum(int lnNumb) {
-  int count = 0;
-  while(count < (lnNumb - 1)){
-    p.setGreenLED(1);
-    waitForLine(50, 1.0);
-    p.setRedLED(1);
-    waitForSpace(25, 1.0);
-    p.setGreenLED(0);
-    p.setRedLED(0); 
-    count += 1;
-  }
-  waitForLine(50, 1.0);
-}
-
-void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
-  int count = 0;
-  while(count < (lnNumb - 1)){
-    p.setGreenLED(1);
-    waitForLineWCorrection(1.0, sideSensor);
-    p.setRedLED(1);
-    waitForSpace(25, 1.0);
-    p.setGreenLED(0);
-    p.setRedLED(0); 
-    count += 1;
-  }
-  waitForLineWCorrection(1.0, sideSensor);
-}
-
+// Waits for the next line and corrects if it gets too close to the wall with the sideSensor
 void waitForLineWCorrection(double threshold, int sideSensor) {
   int rotationDeg = 10;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
@@ -113,12 +85,44 @@ void waitForLineWCorrection(double threshold, int sideSensor) {
   }
 }
 
+// Waits for the lnNumb line and corrects if it gets too close to the wall with the sideSensor
+void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
+  int count = 0;
+  while(count < (lnNumb - 1)){
+    p.setGreenLED(1);
+    waitForLineWCorrection(1.0, sideSensor);
+    p.setRedLED(1);
+    waitForSpace(25, 1.0);
+    p.setGreenLED(0);
+    p.setRedLED(0); 
+    count += 1;
+  }
+  waitForLineWCorrection(1.0, sideSensor);
+}
+
+// Waits for the next line
 void waitForLine(int mill, double threshold) {
   while(p.readLineSensor(17) < threshold) {
     delay(mill);
   }
 }
 
+// Waits for the next lnNumb line
+void waitForLineNum(int lnNumb) {
+  int count = 0;
+  while(count < (lnNumb - 1)){
+    p.setGreenLED(1);
+    waitForLine(50, 1.0);
+    p.setRedLED(1);
+    waitForSpace(25, 1.0);
+    p.setGreenLED(0);
+    p.setRedLED(0); 
+    count += 1;
+  }
+  waitForLine(50, 1.0);
+}
+
+// Waits for the next space
 void waitForSpace(int mill, double threshold) {
 //    while(p.readLineSensor(17) >= threshold) {
   while(p.readLineSensor(17) >= threshold) {
@@ -126,6 +130,7 @@ void waitForSpace(int mill, double threshold) {
   }
 }
 
+// Waits for the front proximity to be below dist
 void waitForProximityBelow(int sensorNo, double dist) {
   const double threshold = 0.5;
   while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
@@ -141,13 +146,4 @@ void setClaw(int deg) {
 // Set the arm to deg (note constants)
 void setArm(int deg) {
     p.setServoPosition(1,deg);
-}
-
-void goForSensor(int sensorNo, double dist){
-  while (p.readSonicSensorIN(sensorNo) > dist && abs(p.readSonicSensorIN(sensorNo) - dist) > 1.0){
-    p.resetEncoders(); // reset encoders to clear the previous rotations
-    p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-    delay(1);
-  }
-  p.setMotorPowers(0,0);
 }
