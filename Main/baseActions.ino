@@ -72,11 +72,63 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
+// Waits for the next line. While waiting for the line, the distance from the wall 
+// will be maintained between closeCorrection and farCorrection. When the bot arrives
+// at the line, it will align itself perpendicular to the line by turning off whichever
+// weel arrives first.
+void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrection) {
+  int rotationDeg = 10;
+  double backupDist = 7.0;
+  if (sideSensor == LEFT_SS) rotationDeg *= -1;
+
+  double rightReading = c.readLineSensor(RIGHT_IR);
+  double leftReading = c.readLineSensor(LEFT_IR);
+  while(rightReading < LINE_THRESHOLD && leftReading < LINE_THRESHOLD) {
+    if (p.readSonicSensorCM(sideSensor) < closeCorrection) {
+      p.setMotorSpeeds(0, 0);
+      rotate(rotationDeg, 100);
+      forwardBy(-backupDist, 100);
+      rotate(-rotationDeg, 100);
+      forwardBy(sin(rotationDeg) * backupDist, MAX_SPEED);
+      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    }
+    if (p.readSonicSensorCM(sideSensor) > farCorrection) {
+      p.setMotorSpeeds(0, 0);
+      rotate(-rotationDeg, 100);
+      forwardBy(-backupDist, 100);
+      rotate(rotationDeg, 100);
+      forwardBy(sin(-rotationDeg) * backupDist, MAX_SPEED);
+      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    }
+    delay(SENSOR_DELAY);
+    rightReading = c.readLineSensor(RIGHT_IR);
+    leftReading = c.readLineSensor(LEFT_IR);
+  }
+
+  while(rightReading < LINE_THRESHOLD || leftReading < LINE_THRESHOLD) {
+    if (rightReading >= LINE_THRESHOLD) p.setMotorSpeed(RIGHT_MOTOR, 0);
+    if (leftReading >= LINE_THRESHOLD) p.setMotorSpeed(LEFT_MOTOR, 0);
+    // no delay for high accuracy
+    rightReading = c.readLineSensor(RIGHT_IR);
+    leftReading = c.readLineSensor(LEFT_IR);
+  }
+}
+
+void driveToNthAdjustedLine(int nth, int sideSensor, int closeCorrection, int farCorrection) {
+  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+  for (int i = 0; i < sideSensor - 1; i++) {
+    waitForNextLineAdjusted(sideSensor, closeCorrection, farCorrection);
+    p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    waitForSpace();
+  }
+  waitForNextLineAdjusted(sideSensor, closeCorrection, farCorrection);
+}
+
 // Waits for the next line and corrects if it gets too close to the wall with the sideSensor
 void waitForLineWCorrection(double threshold, int sideSensor) {
   int rotationDeg = 10;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
-  while(p.readLineSensor(17) < threshold) {
+  while(p.readLineSensor(CLAW_IR) < threshold) {
     if (p.readSonicSensorCM(sideSensor) < 9) {
       p.setMotorSpeeds(0, 0);
       rotate(rotationDeg, 100);
@@ -95,7 +147,7 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
   while(count < (lnNumb - 1)){
     p.setGreenLED(1);
-    while(p.readLineSensor(17) < 1.0) {
+    while(p.readLineSensor(CLAW_IR) < 1.0) {
       if (p.readSonicSensorCM(sideSensor) < 9 && count == 0) {
         p.setMotorSpeeds(0, 0);
         rotate(rotationDeg, 100);
@@ -117,7 +169,7 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
 // Waits for the next line
 void waitForLine() {
   const double threshold = 1.0;
-  while(p.readLineSensor(17) < threshold) {
+  while(p.readLineSensor(CLAW_IR) < threshold) {
     delay(SENSOR_DELAY);
   }
 }
@@ -140,7 +192,7 @@ void waitForLineNum(int lnNumb) {
 // Waits for the next space
 void waitForSpace() {
   const double threshold = 1.0;
-  while(p.readLineSensor(17) >= threshold) {
+  while(p.readLineSensor(CLAW_IR) >= threshold) {
     delay(SENSOR_DELAY);
   }
 }
@@ -171,10 +223,15 @@ void waitForProximityBelow(int sensorNo, double dist) {
 
 // Set the claw to deg (note constants)
 void setClaw(int deg) {
-    p.setServoPosition(2,deg);
+    p.setServoPosition(CLAW_SERVO_NO, deg);
 }
 
 // Set the arm to deg (note constants)
 void setArm(int deg) {
-    p.setServoPosition(1,deg);
+    p.setServoPosition(ARM_SERVO_NO, deg);
+}
+
+// Set the tilting piston position
+void setTilt(int tiltSetting) {
+  p.setServoPosition(TILT_SERVO_NO, tiltSetting);
 }
