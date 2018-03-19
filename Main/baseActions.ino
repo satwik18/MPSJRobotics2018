@@ -72,6 +72,21 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
+// Decelerates over mills from fromSpeed to 0 dps
+void decelerateFor(int mills, int fromSpeed) {
+  double stepCount = 10; // How many steps in the decceleration
+  double timeStep = mills / stepCount; // how long does each step run for
+  double speedStep = fromSpeed / stepCount;
+
+  double totalSpeed = fromSpeed;
+  for (int i = 0; i < stepCount; i++) {
+    totalSpeed -= speedStep;
+    p.setMotorSpeeds(totalSpeed, totalSpeed);
+    delay(timeStep);
+  }
+  p.setMotorSpeeds(0, 0); // Just ensure we always end at 0 dps
+}
+
 // Waits for the next line. While waiting for the line, the distance from the wall 
 // will be maintained between closeCorrection and farCorrection. When the bot arrives
 // at the line, it will align itself perpendicular to the line by turning off whichever

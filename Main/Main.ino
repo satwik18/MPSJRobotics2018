@@ -54,6 +54,7 @@
 #define WALL_PROX_DIST 9 // How close to the wall in inches to trigger "Parallel park"
 #define WALL_FAR_DIST 18 // How far the bot can be from the wall to trigger "Parallel park" // TODO: Fill In
 #define FOURTH_PIPE_RETURN_DIST 40.0 // How far back to return for 4th pipe to prep for transition // TODO: Fill In
+#define PICKUP_TURBO_DURATION 1000 // Milliseconds to run turbo for (inclides acceleration and deceleration) // TODO: Fill In
 
 
 PRIZM p; // Prizm library instance
@@ -83,14 +84,18 @@ void loop() {
   pickupSidePipe(1, SIDE_RIGHT);
   returnSidePipe(1, SIDE_LEFT);
   rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(2, SIDE_RIGHT);
   returnSidePipe(2, SIDE_LEFT);
   rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(3, SIDE_RIGHT);
   returnSidePipe(3, SIDE_LEFT);
+  rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
+
 
   // Pickup 4th pipe
-  rotate(180, 100);
   pickupSidePipe(4, SIDE_RIGHT);
 
 
@@ -134,13 +139,15 @@ void loop() {
   pickupSidePipe(1, SIDE_LEFT);
   returnSidePipe(1, SIDE_RIGHT);
   rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(2, SIDE_LEFT);
   returnSidePipe(2, SIDE_RIGHT);
   rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(3, SIDE_LEFT);
   returnSidePipe(3, SIDE_RIGHT);
-
   rotate(180, 100);
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
 
   // pickup 4th pipe
   pickupSidePipe(4, SIDE_LEFT);
@@ -235,4 +242,16 @@ void returnSidePipe(int pipeNum, int side) {
   setClaw(CLAW_OPEN);
   delay(1000);
   forwardBy(-11.0, MAX_SPEED);
+}
+
+void turboFor(int mills, int speed) {
+  int rampupTime = 500;
+  int turboTime = mills - 2 * rampupTime;
+  if (turboTime < 0) {
+    rampupTime = mills / 2;
+    turboTime = 0;
+  }
+  accelerateFor(rampupTime, speed);
+  delay(turboTime);
+  decelerateFor(rampupTime, speed);
 }
