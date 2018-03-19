@@ -107,7 +107,7 @@ void loop() {
 
   // move to next line
   forwardBy(2.5, MAX_SPEED); // Make sure its over the black tape
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 100); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
 
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // adjust for claw offset
   
@@ -128,7 +128,7 @@ void loop() {
   forwardBy(2.5, MAX_SPEED); // make sure does not read tape
   
   // Move to the third skid line
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 100); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
   forwardBy(ROTATION_CORRECTION_DIST + 3.0, MAX_SPEED); // Adjust for offset
 
   // prepare for first run on the left side
@@ -157,7 +157,7 @@ void loop() {
   forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED); // Move back to skids enough to catch the tape after turn
   rotate(-90, 100); // turn towards the prev skid
 
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 100); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // Adjust for offset
 
   // rotate to the middle skid and then drop
@@ -171,7 +171,7 @@ void loop() {
   // rotate for last pipe
   rotate(180, 100);
 
-  // TODO finish here
+  // TODO: Finish here
   
   p.PrizmEnd();
 }
