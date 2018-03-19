@@ -46,6 +46,7 @@ void forward(int mills, int spd) {
   p.setMotorSpeeds(0, 0); // turns the moters off when done
 }
 
+// Moves forward by inches at a spd
 void forwardBy(double inches, int spd) {
   double deg = inches / WHEEL_C * 360.0;
   p.resetEncoders(); // reset encoders to clear the previous rotations
@@ -129,6 +130,8 @@ void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrect
   }
 }
 
+// Moves forward at max speed until the nth line is detected and adjusted on.
+// "Parallel parking" adjustments by the close and far correction distances in CM.
 void driveToNthAdjustedLine(int nth, int sideSensor, int closeCorrection, int farCorrection) {
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   for (int i = 0; i < sideSensor - 1; i++) {
@@ -137,71 +140,6 @@ void driveToNthAdjustedLine(int nth, int sideSensor, int closeCorrection, int fa
     waitForSpace();
   }
   waitForNextLineAdjusted(sideSensor, closeCorrection, farCorrection);
-}
-
-// Waits for the next line and corrects if it gets too close to the wall with the sideSensor
-void waitForLineWCorrection(double threshold, int sideSensor) {
-  int rotationDeg = 10;
-  if (sideSensor == LEFT_SS) rotationDeg *= -1;
-  while(p.readLineSensor(CLAW_IR) < threshold) {
-    if (p.readSonicSensorCM(sideSensor) < 9) {
-      p.setMotorSpeeds(0, 0);
-      rotate(rotationDeg, 100);
-      forwardBy(-7, 100);
-      rotate(-rotationDeg, 100);
-      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-    }
-    delay(SENSOR_DELAY);
-  }
-}
-
-// Waits for the lnNumb line and corrects if it gets too close to the wall with the sideSensor
-void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
-  int count = 0;
-  int rotationDeg = 10;
-  if (sideSensor == LEFT_SS) rotationDeg *= -1;
-  while(count < (lnNumb - 1)){
-    p.setGreenLED(1);
-    while(p.readLineSensor(CLAW_IR) < 1.0) {
-      if (p.readSonicSensorCM(sideSensor) < 9 && count == 0) {
-        p.setMotorSpeeds(0, 0);
-        rotate(rotationDeg, 100);
-        forwardBy(-7, 100);
-        rotate(-rotationDeg, 100);
-        p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-      }
-      delay(SENSOR_DELAY);
-    }
-    p.setRedLED(1);
-    waitForSpace();
-    p.setGreenLED(0);
-    p.setRedLED(0);
-    count += 1;
-  }
-  waitForLineWCorrection(1.0, sideSensor);
-}
-
-// Waits for the next line
-void waitForLine() {
-  const double threshold = 1.0;
-  while(p.readLineSensor(CLAW_IR) < threshold) {
-    delay(SENSOR_DELAY);
-  }
-}
-
-// Waits for the next lnNumb line
-void waitForLineNum(int lnNumb) {
-  int count = 0;
-  while(count < (lnNumb - 1)){
-    p.setGreenLED(1);
-    waitForLine();
-    p.setRedLED(1);
-    waitForSpace();
-    p.setGreenLED(0);
-    p.setRedLED(0); 
-    count += 1;
-  }
-  waitForLine();
 }
 
 // Waits for the next space
