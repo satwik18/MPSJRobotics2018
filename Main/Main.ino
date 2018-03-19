@@ -49,6 +49,7 @@
 #define WHEEL_BASE_C (PI * WHEEL_BASE_WIDTH) // the circumference of the weel base ininches
 
 // Court Dimentions
+#define LINE_DETECTION_THRESHOLD 1.0 // The values line sensors must detect to determine a line
 #define ROTATION_CORRECTION_DIST 10 // The distance that the bot needs to go forward after detecting THE FARTHEST edge of line to line claw up for 90% turn in inches
 #define SIDE_TAPE_TO_SKID_DIST 52.75 // The distance from the closest pipe rack tape to the skid // TODO: Fill In
 #define WALL_PROX_DIST 9 // How close to the wall in inches to trigger "Parallel park"
@@ -102,12 +103,12 @@ void loop() {
   driveToNthAdjustedLine(4, SIDE_LEFT, WALL_PROX_DIST, WALL_FAR_DIST);
 
 
-  forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED); // Move back to skids enough to catch the tape after turn
+  forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED);
   rotate(90, 100); // turn towards the next skid
 
   // move to next line
   forwardBy(2.5, MAX_SPEED); // Make sure its over the black tape
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(1, -1, 0, 0);
 
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // adjust for claw offset
   
@@ -128,7 +129,7 @@ void loop() {
   forwardBy(2.5, MAX_SPEED); // make sure does not read tape
   
   // Move to the third skid line
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(1, -1, 0, 0);
   forwardBy(ROTATION_CORRECTION_DIST + 3.0, MAX_SPEED); // Adjust for offset
 
   // prepare for first run on the left side
@@ -157,7 +158,7 @@ void loop() {
   forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED); // Move back to skids enough to catch the tape after turn
   rotate(-90, 100); // turn towards the prev skid
 
-  driveToNthAdjustedLine(pipeNum, sideSensor, 0, 500); // 0 and 100 should cancel out the ss adjustments
+  driveToNthAdjustedLine(1, -1, 0, 0);
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // Adjust for offset
 
   // rotate to the middle skid and then drop
@@ -177,15 +178,9 @@ void loop() {
 }
 
 void pickupSidePipe(int ithPipe, int side) {
-  int sideSensor, deliverySideSensor;
+  int sideSensor = RIGHT_SS;
   // adjust for claw offset
-  if (side == SIDE_LEFT) {
-    sideSensor = LEFT_SS;
-    deliverySideSensor = RIGHT_SS;
-  } else {
-    sideSensor = RIGHT_SS;
-    deliverySideSensor = LEFT_SS;
-  }
+  if (side == SIDE_LEFT) sideSensor = LEFT_SS;
   
   // Make sure claw is ready
   setClaw(CLAW_OPEN);
@@ -194,7 +189,8 @@ void pickupSidePipe(int ithPipe, int side) {
   delay(500);
 
   // move to the ith line
-  driveToLineNumWCorrection(ithPipe, sideSensor); // line adjustment goes here
+  driveToNthAdjustedLine(ithPipe, sideSensor, WALL_PROX_DIST, WALL_FAR_DIST);
+
   // adjust for claw offset
   forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED);
 
@@ -234,7 +230,7 @@ void returnSidePipe(int pipeNum, int side) {
   forwardBy(-1.5, 100);
 
   // Travels back across tape lines to the start of the first
-  waitForNthAdjustedLine(pipeNum, sideSensor, WALL_PROX_DIST, WALL_FAR_DIST);
+  driveToNthAdjustedLine(pipeNum, sideSensor, WALL_PROX_DIST, WALL_FAR_DIST);
 
   // From the start of the first line, travel back exact distance
   forwardBy(SIDE_TAPE_TO_SKID_DIST, MAX_SPEED);

@@ -96,10 +96,10 @@ void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrect
   double backupDist = 7.0;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
 
-  double rightReading = c.readLineSensor(RIGHT_IR);
-  double leftReading = c.readLineSensor(LEFT_IR);
-  while(rightReading < LINE_THRESHOLD && leftReading < LINE_THRESHOLD) {
-    if (p.readSonicSensorCM(sideSensor) < closeCorrection) {
+  double rightReading = p.readLineSensor(RIGHT_IR);
+  double leftReading = p.readLineSensor(LEFT_IR);
+  while(rightReading < LINE_DETECTION_THRESHOLD && leftReading < LINE_DETECTION_THRESHOLD) {
+    if (p.readSonicSensorCM(sideSensor) < closeCorrection && sideSensor != -1) {
       p.setMotorSpeeds(0, 0);
       rotate(rotationDeg, 100);
       forwardBy(-backupDist, 100);
@@ -107,7 +107,7 @@ void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrect
       forwardBy(sin(rotationDeg) * backupDist, MAX_SPEED);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
-    if (p.readSonicSensorCM(sideSensor) > farCorrection) {
+    if (p.readSonicSensorCM(sideSensor) > farCorrection && sideSensor != -1) {
       p.setMotorSpeeds(0, 0);
       rotate(-rotationDeg, 100);
       forwardBy(-backupDist, 100);
@@ -116,16 +116,16 @@ void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrect
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
     delay(SENSOR_DELAY);
-    rightReading = c.readLineSensor(RIGHT_IR);
-    leftReading = c.readLineSensor(LEFT_IR);
+    rightReading = p.readLineSensor(RIGHT_IR);
+    leftReading = p.readLineSensor(LEFT_IR);
   }
 
-  while(rightReading < LINE_THRESHOLD || leftReading < LINE_THRESHOLD) {
-    if (rightReading >= LINE_THRESHOLD) p.setMotorSpeed(RIGHT_MOTOR, 0);
-    if (leftReading >= LINE_THRESHOLD) p.setMotorSpeed(LEFT_MOTOR, 0);
+  while(rightReading < LINE_DETECTION_THRESHOLD || leftReading < LINE_DETECTION_THRESHOLD) {
+    if (rightReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(RIGHT_MOTOR, 0);
+    if (leftReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(LEFT_MOTOR, 0);
     // no delay for high accuracy
-    rightReading = c.readLineSensor(RIGHT_IR);
-    leftReading = c.readLineSensor(LEFT_IR);
+    rightReading = p.readLineSensor(RIGHT_IR);
+    leftReading = p.readLineSensor(LEFT_IR);
   }
 }
 
