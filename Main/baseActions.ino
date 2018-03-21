@@ -123,7 +123,9 @@ void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrect
 
   while(rightReading < LINE_DETECTION_THRESHOLD || leftReading < LINE_DETECTION_THRESHOLD) {
     if (rightReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(RIGHT_MOTOR, 0);
+    else p.setMotorSpeed(RIGHT_MOTOR, MAX_SPEED);
     if (leftReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(LEFT_MOTOR, 0);
+    else p.setMotorSpeed(LEFT_MOTOR, MAX_SPEED);
     // no delay for high accuracy
     rightReading = p.readLineSensor(RIGHT_IR);
     leftReading = p.readLineSensor(LEFT_IR);
