@@ -21,7 +21,6 @@
 #define LEFT_SS 15 // Left Super Sonic sensor
 #define CLAW_SERVO_NO 2 // Claw servo number
 #define ARM_SERVO_NO 1 // Arm servo number
-#define TILT_SERVO_NO 0 // Tilting servo number // TODO: Fill In
 #define CLAW_IR 17 // The claw IR sensor port number
 #define RIGHT_IR 0 // The right correction IR sensor port number // TODO: Fill In
 #define LEFT_IR 0 // The left correction IR sensor port number // TODO: Fill In
@@ -31,15 +30,12 @@
 #define MAX_SPEED 150 //  0 to 720 degrees per second (DPS)
 #define TURBO_SPEED 300 // DEEEEEEEPPPPPPPPSSSSSSS
 #define CLAW_SERVO_SPEED 40 // In percentage where 100% is max speed
-#define TILT_SERVO_SPEED 20 // % // TODO: ADJUST IF NECESSARY
 
 // Servo positions
 #define ARM_DOWN 20 // The arm's up position
 #define ARM_UP 105 // The arm's down position
 #define CLAW_OPEN 150 // The claw's open position
 #define CLAW_CLOSED 70 // The claw's closed position
-#define TILT_EXTENDED 0 // The extended tilt // TODO: Fill In
-#define TILT_RETRACTED 0 // The position when tilt is off // TODO: Fill In
 
 
 // Robot dimensions
@@ -65,7 +61,6 @@ void setup() {
   p.setMotorInvert(1,1);
   Serial.begin(9600); // For sending debug messages to a connected computer
   p.setServoSpeed(CLAW_SERVO_NO, CLAW_SERVO_SPEED);
-  p.setServoSpeed(TILT_SERVO_NO, TILT_SERVO_SPEED);
   delay(100);
 }
 
@@ -73,7 +68,6 @@ void loop() {
   // open claw
   setClaw(CLAW_OPEN);
   setArm(ARM_DOWN);
-  setTilt(TILT_RETRACTED);
   delay(500);
 
   // lineup for first run
@@ -185,7 +179,6 @@ void pickupSidePipe(int ithPipe, int side) {
   // Make sure claw is ready
   setClaw(CLAW_OPEN);
   setArm(ARM_DOWN);
-  setTilt(TILT_RETRACTED);
   delay(500);
 
   // move to the ith line
@@ -206,11 +199,8 @@ void pickupSidePipe(int ithPipe, int side) {
   delay(100);
 
   // TODO: Dial in delays
-  setTilt(TILT_EXTENDED);
   delay(900);
   setClaw(CLAW_CLOSED);
-  delay(900);
-  setTilt(TILT_EXTENDED);
   delay(900);
 
   // DIAL THIS IN

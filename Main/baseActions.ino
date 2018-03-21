@@ -186,7 +186,3 @@ void setArm(int deg) {
     p.setServoPosition(ARM_SERVO_NO, deg);
 }
 
-// Set the tilting piston position
-void setTilt(int tiltSetting) {
-  p.setServoPosition(TILT_SERVO_NO, tiltSetting);
-}
