@@ -10,6 +10,8 @@
 
 #include <PRIZM.h>
 
+#define TURBO 1 // Turbo engaged?
+
 #define SIDE_RIGHT -1 // a multiplyer to adjust angles for the right side
 #define SIDE_LEFT 1 // a multiplyer to ajust angles for the left side
 
@@ -230,6 +232,7 @@ void returnSidePipe(int pipeNum, int side) {
   forwardBy(-11.0, MAX_SPEED);
 }
 
+#ifdef TURBO
 void turboFor(int mills, int speed) {
   int rampupTime = 500;
   int turboTime = mills - 2 * rampupTime;
@@ -241,3 +244,8 @@ void turboFor(int mills, int speed) {
   delay(turboTime);
   decelerateFor(rampupTime, speed);
 }
+#else
+void turboFor(int mills, int speed) {
+  // Do nothing if turbo is not enabled
+}
+#endif
