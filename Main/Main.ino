@@ -120,7 +120,7 @@ void mainProg() {
   waitForLine();
   p.setMotorSpeeds(0, 0);
 
-  forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // adjust for claw offset
+  forwardBy(ROTATION_CORRECTION_DIST + 1.5, MAX_SPEED); // adjust for claw offset
   
 
 
@@ -159,11 +159,12 @@ void mainProg() {
   p.setMotorSpeeds(-10, 150);
   delay(1000);
 
-  forwardBy(-4.0, MAX_SPEED);
+  forwardBy(-3.5, MAX_SPEED);
 
   // prepare for first run on the left side
   rotate(88, TURN_SPEED);
-  forwardBy(19, MAX_SPEED); // Move so we dont detect the line
+  turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
+  //forwardBy(19, MAX_SPEED); // Move so we dont detect the line
 
   // Do the left side pipes 1-3
   pickupSidePipe(1, SIDE_LEFT);
@@ -246,10 +247,30 @@ void pickupSidePipe(int ithPipe, int side) {
   delay(900);
 
   // DIAL THIS IN
-  forwardBy(-3.75, MAX_SPEED); // was 2.5
-
+  forwardBy(-2.5, MAX_SPEED);
   setArm(ARM_UP);
+  forwardBy(-3.75, MAX_SPEED); // was 2.5
+  forwardBy(-1.0, 50);
+
+  wallShuffle(-1);
+
+  if (side == SIDE_RIGHT) {
+    forwardBy(4.75, MAX_SPEED);
+  } else {
+    forwardBy(2.0, MAX_SPEED);
+  }
+
+  
   rotate(side * 90, TURN_SPEED);
+}
+
+void wallShuffle(int dirMult) {
+  p.setMotorSpeeds(dirMult * 150, dirMult * -5);
+  delay(600);
+  p.setMotorSpeeds(dirMult * -5, dirMult * 150);
+  delay(600);
+  p.setMotorSpeeds(0, 0);
+  delay(200);
 }
 
 void returnSidePipe(int pipeNum, int side) {
