@@ -8,14 +8,8 @@
 
 #define SENSOR_DELAY 50 // The ammount of mills to wait in between sensor checks
 
-// Rotates the robot by deg clockwise at a spd
 void rotate(double deg, int spd) {
-  const double threshold = 2.5;
   p.resetEncoders(); // reset encoders to clear the previous rotations
-  
-  // Read the current angle of the wheel (may be always 0 since line above)
-  long rightDeg = p.readEncoderDegrees(1); 
-  long leftDeg = p.readEncoderDegrees(2);
 
   // Using the circumference of the base, calculate how far the robot needs to spin to turn deg
 
@@ -25,19 +19,18 @@ void rotate(double deg, int spd) {
   double degreesToTurn = rotateDistance / WHEEL_C * 360;
 
   // Add the degrees to turn to the wheel
-  rightDeg += degreesToTurn;
-  leftDeg -= degreesToTurn;
+  double rightDeg = degreesToTurn * 4.0;
+  double leftDeg = -degreesToTurn * 4.0;
 
   // Tell the robot to make the adjustments at a spd
   //p.setMotorDegrees(spd, rightDeg, spd, leftDeg);
-  p.setMotorTargets(spd, rightDeg * 4.0, spd, leftDeg * 4.0);
+  p.setMotorTargets(spd, rightDeg, spd, leftDeg);
 
-  while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
+  while(p.readMotorBusy(RIGHT_MOTOR) || p.readMotorBusy(LEFT_MOTOR)) {
     delay(SENSOR_DELAY);
   }
-  delay(1000);
+  delay(100);
 }
-
 
 // Moves the robot forward at a spd for a time in mills
 void forward(int mills, int spd) {
@@ -52,10 +45,10 @@ void forwardBy(double inches, int spd) {
   p.resetEncoders(); // reset encoders to clear the previous rotations
   p.setMotorDegrees(spd, deg, spd, deg);
 
-  while(abs(p.readEncoderDegrees(1) - deg) > 2.5 && abs(p.readEncoderDegrees(2) - deg) > 2.5) {
+  while(p.readMotorBusy(RIGHT_MOTOR) || p.readMotorBusy(LEFT_MOTOR)) {
     delay(SENSOR_DELAY);
   }
-  delay(1000);  
+  delay(100);  
 }
 
 // Accelerates over mills from 0 dps to toSpeed
@@ -88,60 +81,94 @@ void decelerateFor(int mills, int fromSpeed) {
   p.setMotorSpeeds(0, 0); // Just ensure we always end at 0 dps
 }
 
-// Waits for the next line. While waiting for the line, the distance from the wall 
-// will be maintained between closeCorrection and farCorrection. When the bot arrives
-// at the line, it will align itself perpendicular to the line by turning off whichever
-// weel arrives first.
-void waitForNextLineAdjusted(int sideSensor, int closeCorrection, int farCorrection) {
+
+
+void parallelCorrection(int sideSensor, int closeDist, int farDist) {
   int rotationDeg = 10;
   double backupDist = 7.0;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
 
-  double rightReading = p.readLineSensor(RIGHT_IR);
-  double leftReading = p.readLineSensor(LEFT_IR);
-  while(rightReading < LINE_DETECTION_THRESHOLD && leftReading < LINE_DETECTION_THRESHOLD) {
-    if (p.readSonicSensorCM(sideSensor) < closeCorrection && sideSensor != -1) {
+    if (p.readSonicSensorCM(sideSensor) < closeDist) {
       p.setMotorSpeeds(0, 0);
       rotate(rotationDeg, 100);
       forwardBy(-backupDist, 100);
       rotate(-rotationDeg, 100);
-      forwardBy(sin(rotationDeg) * backupDist, MAX_SPEED);
+      forwardBy(-sin(rotationDeg) * backupDist, MAX_SPEED);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
-    if (p.readSonicSensorCM(sideSensor) > farCorrection && sideSensor != -1) {
+    if (p.readSonicSensorCM(sideSensor) > farDist) {
       p.setMotorSpeeds(0, 0);
       rotate(-rotationDeg, 100);
       forwardBy(-backupDist, 100);
       rotate(rotationDeg, 100);
-      forwardBy(sin(-rotationDeg) * backupDist, MAX_SPEED);
+      forwardBy(-sin(-rotationDeg) * backupDist, MAX_SPEED);
+      p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+    }
+}
+
+// Waits for the next line and corrects if it gets too close to the wall with the sideSensor
+void waitForLineWCorrection(double threshold, int sideSensor) {
+  int rotationDeg = 10;
+  if (sideSensor == LEFT_SS) rotationDeg *= -1;
+  while(p.readLineSensor(CLAW_IR) < threshold) {
+    if (p.readSonicSensorCM(sideSensor) < 9) {
+      p.setMotorSpeeds(0, 0);
+      rotate(rotationDeg, 100);
+      forwardBy(-7, 100);
+      rotate(-rotationDeg, 100);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
     delay(SENSOR_DELAY);
-    rightReading = p.readLineSensor(RIGHT_IR);
-    leftReading = p.readLineSensor(LEFT_IR);
-  }
-
-  while(rightReading < LINE_DETECTION_THRESHOLD || leftReading < LINE_DETECTION_THRESHOLD) {
-    if (rightReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(RIGHT_MOTOR, 0);
-    else p.setMotorSpeed(RIGHT_MOTOR, MAX_SPEED);
-    if (leftReading >= LINE_DETECTION_THRESHOLD) p.setMotorSpeed(LEFT_MOTOR, 0);
-    else p.setMotorSpeed(LEFT_MOTOR, MAX_SPEED);
-    // no delay for high accuracy
-    rightReading = p.readLineSensor(RIGHT_IR);
-    leftReading = p.readLineSensor(LEFT_IR);
   }
 }
 
-// Moves forward at max speed until the nth line is detected and adjusted on.
-// "Parallel parking" adjustments by the close and far correction distances in CM.
-void driveToNthAdjustedLine(int nth, int sideSensor, int closeCorrection, int farCorrection) {
-  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  for (int i = 0; i < sideSensor - 1; i++) {
-    waitForNextLineAdjusted(sideSensor, closeCorrection, farCorrection);
-    p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+
+
+// Waits for the lnNumb line and corrects if it gets too close to the wall with the sideSensor
+void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
+  int count = 0;
+  int rotationDeg = 10;
+  if (sideSensor == LEFT_SS) rotationDeg *= -1;
+  while(count < (lnNumb - 1)){
+    p.setGreenLED(1);
+    while(p.readLineSensor(CLAW_IR) < 1.0) {
+      if (p.readSonicSensorCM(sideSensor) < 9 && count == 0) {
+        p.setMotorSpeeds(0, 0);
+        rotate(rotationDeg, 100);
+        forwardBy(-7, 100);
+        rotate(-rotationDeg, 100);
+        p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+      }
+//      if (p.readSonicSensorCM(sideSensor) > 14 && count == 0) {
+//        p.setMotorSpeeds(0, 0);
+//        rotate(-rotationDeg, 100);
+//        forwardBy(-7, 100);
+//        rotate(rotationDeg, 100);
+//        p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+//      }
+      delay(SENSOR_DELAY);
+    }
+    p.setRedLED(1);
+    waitForSpace();
+    p.setGreenLED(0);
+    p.setRedLED(0);
+    count += 1;
+  }
+  waitForLineWCorrection(1.0, sideSensor);
+}
+
+void waitForNLine(int n) {
+  for (int i = 1; i < n; i++) {
+    waitForLine();
     waitForSpace();
   }
-  waitForNextLineAdjusted(sideSensor, closeCorrection, farCorrection);
+  waitForLine();
+}
+
+void waitForLine() {
+  while(p.readLineSensor(CLAW_IR) < 1.0) {
+    delay(SENSOR_DELAY);
+  }
 }
 
 // Waits for the next space
