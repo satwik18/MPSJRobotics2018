@@ -205,7 +205,7 @@ void mainProg() {
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   waitForLine();
   p.setMotorSpeeds(0, 0);
-  forwardBy(ROTATION_CORRECTION_DIST - 1.5, MAX_SPEED); // Adjust for offset
+  forwardBy(ROTATION_CORRECTION_DIST - 0.7, MAX_SPEED); // Adjust for offset
 
   // rotate to the middle skid and then drop
   rotate(90, TURN_SPEED);
@@ -217,9 +217,12 @@ void mainProg() {
   delay(250);
   setClaw(CLAW_OPEN);
   delay(1000);
-  forwardBy(-10.0, MAX_SPEED);
+  forwardBy(-7.0, MAX_SPEED);
+
 
   rotate(180, MAX_SPEED);
+  forwardBy(-8.0,MAX_SPEED);
+  forwardBy(7.0, MAX_SPEED);  
   setArm(ARM_DOWN);
   setClaw(CLAW_OPEN);
 
@@ -238,7 +241,7 @@ void mainProg() {
   
 
   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
-  waitForProximityBelow(FRONT_SS , 14);
+  waitForProximityBelow(FRONT_SS , 15);
   p.setMotorSpeeds(0, 0);
   delay(700);
 
@@ -297,7 +300,7 @@ void pickupSidePipe(int ithPipe, int side) {
   if (side == SIDE_RIGHT) {
     forwardBy(4.70, MAX_SPEED);
   } else {
-    forwardBy(2.0, MAX_SPEED);
+    forwardBy(3.0, MAX_SPEED);
   }
 
   
