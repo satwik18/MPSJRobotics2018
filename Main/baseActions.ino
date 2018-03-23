@@ -8,14 +8,8 @@
 
 #define SENSOR_DELAY 50 // The ammount of mills to wait in between sensor checks
 
-// Rotates the robot by deg clockwise at a spd
 void rotate(double deg, int spd) {
-  const double threshold = 2.5;
   p.resetEncoders(); // reset encoders to clear the previous rotations
-  
-  // Read the current angle of the wheel (may be always 0 since line above)
-  long rightDeg = p.readEncoderDegrees(1); 
-  long leftDeg = p.readEncoderDegrees(2);
 
   // Using the circumference of the base, calculate how far the robot needs to spin to turn deg
 
@@ -25,19 +19,18 @@ void rotate(double deg, int spd) {
   double degreesToTurn = rotateDistance / WHEEL_C * 360;
 
   // Add the degrees to turn to the wheel
-  rightDeg += degreesToTurn;
-  leftDeg -= degreesToTurn;
+  double rightDeg = degreesToTurn * 4.0;
+  double leftDeg = -degreesToTurn * 4.0;
 
   // Tell the robot to make the adjustments at a spd
   //p.setMotorDegrees(spd, rightDeg, spd, leftDeg);
-  p.setMotorTargets(spd, rightDeg * 4.0, spd, leftDeg * 4.0);
+  p.setMotorTargets(spd, rightDeg, spd, leftDeg);
 
-  while(abs(p.readEncoderDegrees(1) - rightDeg) > threshold && abs(p.readEncoderDegrees(2) - leftDeg) > threshold) {
+  while(p.readMotorBusy(RIGHT_MOTOR) || p.readMotorBusy(LEFT_MOTOR)) {
     delay(SENSOR_DELAY);
   }
-  delay(1000);
+  delay(100);
 }
-
 
 // Moves the robot forward at a spd for a time in mills
 void forward(int mills, int spd) {
@@ -46,15 +39,16 @@ void forward(int mills, int spd) {
   p.setMotorSpeeds(0, 0); // turns the moters off when done
 }
 
+// Moves forward by inches at a spd
 void forwardBy(double inches, int spd) {
   double deg = inches / WHEEL_C * 360.0;
   p.resetEncoders(); // reset encoders to clear the previous rotations
   p.setMotorDegrees(spd, deg, spd, deg);
 
-  while(abs(p.readEncoderDegrees(1) - deg) > 2.5 && abs(p.readEncoderDegrees(2) - deg) > 2.5) {
+  while(p.readMotorBusy(RIGHT_MOTOR) || p.readMotorBusy(LEFT_MOTOR)) {
     delay(SENSOR_DELAY);
   }
-  delay(1000);  
+  delay(100);  
 }
 
 // Accelerates over mills from 0 dps to toSpeed
@@ -72,35 +66,56 @@ void accelerateFor(int mills, int toSpeed) {
   }
 }
 
+// Decelerates over mills from fromSpeed to 0 dps
+void decelerateFor(int mills, int fromSpeed) {
+  double stepCount = 10; // How many steps in the decceleration
+  double timeStep = mills / stepCount; // how long does each step run for
+  double speedStep = fromSpeed / stepCount;
+
+  double totalSpeed = fromSpeed;
+  for (int i = 0; i < stepCount; i++) {
+    totalSpeed -= speedStep;
+    p.setMotorSpeeds(totalSpeed, totalSpeed);
+    delay(timeStep);
+  }
+  p.setMotorSpeeds(0, 0); // Just ensure we always end at 0 dps
+}
+
 // Waits for the next line and corrects if it gets too close to the wall with the sideSensor
 void waitForLineWCorrection(double threshold, int sideSensor) {
   int rotationDeg = 10;
+  double backupDist = 7.0;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
-  while(p.readLineSensor(17) < threshold) {
+  while(p.readLineSensor(CLAW_IR) < threshold) {
     if (p.readSonicSensorCM(sideSensor) < 9) {
       p.setMotorSpeeds(0, 0);
       rotate(rotationDeg, 100);
-      forwardBy(-7, 100);
+      forwardBy(-backupDist, 100);
       rotate(-rotationDeg, 100);
+      forwardBy(-cos(rotationDeg) * backupDist  + 0.75, MAX_SPEED);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
     delay(SENSOR_DELAY);
   }
 }
 
+
+
 // Waits for the lnNumb line and corrects if it gets too close to the wall with the sideSensor
 void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
   int count = 0;
   int rotationDeg = 10;
+  double backupDist = 7.0;
   if (sideSensor == LEFT_SS) rotationDeg *= -1;
   while(count < (lnNumb - 1)){
     p.setGreenLED(1);
-    while(p.readLineSensor(17) < 1.0) {
+    while(p.readLineSensor(CLAW_IR) < 1.0) {
       if (p.readSonicSensorCM(sideSensor) < 9 && count == 0) {
         p.setMotorSpeeds(0, 0);
         rotate(rotationDeg, 100);
-        forwardBy(-7, 100);
+        forwardBy(-backupDist, 100);
         rotate(-rotationDeg, 100);
+        forwardBy(-cos(rotationDeg) * backupDist + 0.75, MAX_SPEED);
         p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
       }
       delay(SENSOR_DELAY);
@@ -114,47 +129,40 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
   waitForLineWCorrection(1.0, sideSensor);
 }
 
-// Waits for the next line
-void waitForLine() {
-  const double threshold = 1.0;
-  while(p.readLineSensor(17) < threshold) {
-    delay(SENSOR_DELAY);
-  }
-}
-
-// Waits for the next lnNumb line
-void waitForLineNum(int lnNumb) {
-  int count = 0;
-  while(count < (lnNumb - 1)){
-    p.setGreenLED(1);
+void waitForNLine(int n) {
+  for (int i = 1; i < n; i++) {
     waitForLine();
-    p.setRedLED(1);
     waitForSpace();
-    p.setGreenLED(0);
-    p.setRedLED(0); 
-    count += 1;
   }
   waitForLine();
+}
+
+void waitForLine() {
+  while(p.readLineSensor(CLAW_IR) < 1.0) {
+    delay(SENSOR_DELAY);
+  }
 }
 
 // Waits for the next space
 void waitForSpace() {
   const double threshold = 1.0;
-  while(p.readLineSensor(17) >= threshold) {
+  while(p.readLineSensor(CLAW_IR) >= threshold) {
     delay(SENSOR_DELAY);
   }
 }
 
 // Waits for the front proximity to be below dist with distance correction
 void waitForProximityBelowWCorrection(int sensorNo, double dist, int sideSensor) {
-  const int rotationDeg = 10;
+  const double rotationDeg = 10.0;
+  const double correctionDist = 7.0;
   const double threshold = 0.5;
   while(abs(p.readSonicSensorCM(sensorNo) - dist) < threshold) {
     if (p.readSonicSensorCM(sideSensor) < 9) {
       p.setMotorSpeeds(0, 0);
       rotate(rotationDeg, 100);
-      forwardBy(-7, 100);
+      forwardBy(-correctionDist, 100);
       rotate(-rotationDeg, 100);
+      forwardBy(cos(rotationDeg) * correctionDist, MAX_SPEED);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
     delay(SENSOR_DELAY);
@@ -171,10 +179,11 @@ void waitForProximityBelow(int sensorNo, double dist) {
 
 // Set the claw to deg (note constants)
 void setClaw(int deg) {
-    p.setServoPosition(2,deg);
+    p.setServoPosition(CLAW_SERVO_NO, deg);
 }
 
 // Set the arm to deg (note constants)
 void setArm(int deg) {
-    p.setServoPosition(1,deg);
+    p.setServoPosition(ARM_SERVO_NO, deg);
 }
+
