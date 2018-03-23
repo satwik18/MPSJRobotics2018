@@ -92,7 +92,7 @@ void waitForLineWCorrection(double threshold, int sideSensor) {
       rotate(rotationDeg, 100);
       forwardBy(-backupDist, 100);
       rotate(-rotationDeg, 100);
-      forwardBy(-cos(rotationDeg) * backupDist  + 0.75, MAX_SPEED);
+      forwardBy(abs(-cos(rotationDeg) * backupDist)  + 1.25, MAX_SPEED);
       p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
     }
     delay(SENSOR_DELAY);
@@ -115,7 +115,7 @@ void waitForLineNumWCorrection(int lnNumb, int sideSensor) {
         rotate(rotationDeg, 100);
         forwardBy(-backupDist, 100);
         rotate(-rotationDeg, 100);
-        forwardBy(-cos(rotationDeg) * backupDist + 0.75, MAX_SPEED);
+        forwardBy(abs(-cos(rotationDeg) * backupDist) + 1.25, MAX_SPEED);
         p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
       }
       delay(SENSOR_DELAY);
