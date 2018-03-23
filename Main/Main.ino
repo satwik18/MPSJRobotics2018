@@ -31,7 +31,8 @@
 // Speeds
 #define MAX_SPEED 150 //  0 to 720 degrees per second (DPS)
 #define TURN_SPEED 90 //  0 to 720 degrees per second (DPS)
-#define TURBO_SPEED 360 // DEEEEEEEPPPPPPPPSSSSSSS
+#define TURBO_SPEED 700 // DEEEEEEEPPPPPPPPSSSSSSS
+#define LONG_DISTANCE_TURBO_SPEED 400
 #define CLAW_SERVO_SPEED 40 // In percentage where 100% is max speed
 
 // Servo positions
@@ -50,11 +51,12 @@
 // Court Dimentions
 #define LINE_DETECTION_THRESHOLD 1.0 // The values line sensors must detect to determine a line
 #define ROTATION_CORRECTION_DIST 3.75 // The distance that the bot needs to go forward after detecting THE FARTHEST edge of line to line claw up for 90% turn in inches
-#define SIDE_TAPE_TO_SKID_DIST 55.75 // The distance from the closest pipe rack tape to the skid
+#define SIDE_TAPE_TO_SKID_DIST 55.00 // 55.5 // The distance from the closest pipe rack tape to the skid
 #define WALL_PROX_DIST 9 // How close to the wall in inches to trigger "Parallel park"
 #define WALL_FAR_DIST 6.5 // How far the bot can be from the wall to trigger "Parallel park" // TODO: Fill In
 #define FOURTH_PIPE_RETURN_DIST 60.0 // How far back to return for 4th pipe to prep for transition // TODO: Fill In
-#define PICKUP_TURBO_DURATION 2800 // Milliseconds to run turbo for (inclides acceleration and deceleration) // TODO: Fill In
+#define FOURTH_PIPE_TURBO_TIME 5750 //4200 // How long to run turbo back on 4th pipe
+#define PICKUP_TURBO_DURATION 2100 //2800 // Milliseconds to run turbo for (inclides acceleration and deceleration) // TODO: Fill In
 
 
 PRIZM p; // Prizm library instance
@@ -91,15 +93,15 @@ void mainProg() {
   // pickup pipes 1-3 on the right side
   pickupSidePipe(1, SIDE_RIGHT);
   returnSidePipe(1, SIDE_LEFT);
-  rotate(180, TURN_SPEED);
+  rotate(181, TURN_SPEED);
   turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(2, SIDE_RIGHT);
   returnSidePipe(2, SIDE_LEFT);
-  rotate(180, TURN_SPEED);
+  rotate(181, TURN_SPEED);
   turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
   pickupSidePipe(3, SIDE_RIGHT);
   returnSidePipe(3, SIDE_LEFT);
-  rotate(180, TURN_SPEED);
+  rotate(181, TURN_SPEED);
   turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
 
 
@@ -110,7 +112,11 @@ void mainProg() {
   //forwardBy(58.0, MAX_SPEED);
 
 
-  forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED);
+  //forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED);
+  //turboFor(FOURTH_PIPE_TURBO_TIME, TURBO_SPEED);
+  turboFor(FOURTH_PIPE_TURBO_TIME, LONG_DISTANCE_TURBO_SPEED);
+
+  
   rotate(90, TURN_SPEED); // turn towards the next skid
 
   // move to next line
@@ -164,6 +170,8 @@ void mainProg() {
   // prepare for first run on the left side
   rotate(88, TURN_SPEED);
   turboFor(PICKUP_TURBO_DURATION, TURBO_SPEED);
+
+  
   //forwardBy(19, MAX_SPEED); // Move so we dont detect the line
 
   // Do the left side pipes 1-3
@@ -183,28 +191,60 @@ void mainProg() {
   // pickup 4th pipe
   pickupSidePipe(4, SIDE_LEFT);
 
-  forwardBy(58.0, MAX_SPEED);
+  //forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED); // Move back to skids enough to catch the tape after turn
+  //turboFor(FOURTH_PIPE_TURBO_TIME, TURBO_SPEED);
+  turboFor(FOURTH_PIPE_TURBO_TIME, LONG_DISTANCE_TURBO_SPEED);
 
-  forwardBy(FOURTH_PIPE_RETURN_DIST, MAX_SPEED); // Move back to skids enough to catch the tape after turn
+
+  
   rotate(-90, TURN_SPEED); // turn towards the prev skid
 
-   p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+  forwardBy(-4.0, MAX_SPEED);
+  wallShuffle(-1);
+
+  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
   waitForLine();
   p.setMotorSpeeds(0, 0);
-  forwardBy(ROTATION_CORRECTION_DIST, MAX_SPEED); // Adjust for offset
+  forwardBy(ROTATION_CORRECTION_DIST - 1.5, MAX_SPEED); // Adjust for offset
 
   // rotate to the middle skid and then drop
   rotate(90, TURN_SPEED);
-  forwardBy(2.0, MAX_SPEED); // TODO: Fill In
+  
+  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+  waitForProximityBelow(FRONT_SS , 15);
+  p.setMotorSpeeds(0, 0);
+
   delay(250);
   setClaw(CLAW_OPEN);
   delay(1000);
+  forwardBy(-10.0, MAX_SPEED);
+
+  rotate(180, MAX_SPEED);
+  setArm(ARM_DOWN);
+  setClaw(CLAW_OPEN);
+
+  
+  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+  waitForProximityBelow(FRONT_SS , 14);
+  p.setMotorSpeeds(0, 0);
+  delay(1000);
+  
+  setClaw(CLAW_CLOSED);
+  delay(500);
+  
   forwardBy(-11.0, MAX_SPEED);
+  setArm(ARM_UP);
+  rotate(-180, TURN_SPEED);
+  
 
-  // rotate for last pipe
-  rotate(180, TURN_SPEED);
+  p.setMotorSpeeds(MAX_SPEED, MAX_SPEED);
+  waitForProximityBelow(FRONT_SS , 14);
+  p.setMotorSpeeds(0, 0);
+  delay(700);
 
-  // TODO: Finish here
+  setClaw(CLAW_OPEN);
+  delay(700);
+  forwardBy(-11.0, MAX_SPEED);
   
   p.PrizmEnd();
 }
@@ -255,7 +295,7 @@ void pickupSidePipe(int ithPipe, int side) {
   wallShuffle(-1);
 
   if (side == SIDE_RIGHT) {
-    forwardBy(4.75, MAX_SPEED);
+    forwardBy(4.70, MAX_SPEED);
   } else {
     forwardBy(2.0, MAX_SPEED);
   }
@@ -287,7 +327,7 @@ void returnSidePipe(int pipeNum, int side) {
 
   // From the start of the first line, travel back exact distance
   forwardBy(SIDE_TAPE_TO_SKID_DIST + 5.0 * (pipeNum - 1), MAX_SPEED);
-  delay(250);
+  delay(500);
   setClaw(CLAW_OPEN);
   delay(1000);
   forwardBy(-11.0, MAX_SPEED);
@@ -295,7 +335,7 @@ void returnSidePipe(int pipeNum, int side) {
 
 #ifdef TURBO
 void turboFor(int mills, int speed) {
-  int rampupTime = 500;
+  int rampupTime = 1300;
   int turboTime = mills - 2 * rampupTime;
   if (turboTime < 0) {
     rampupTime = mills / 2;
